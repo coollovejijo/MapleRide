@@ -1,0 +1,12 @@
+import React from "react";
+
+function LostFound() {
+  return (
+    <div>
+      <h2>Lost & Found</h2>
+      <p>Customers can report lost items. Drivers get notified automatically via app.</p>
+    </div>
+  )
+}
+
+export default LostFound;

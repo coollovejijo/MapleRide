@@ -1,0 +1,16 @@
+const express = require("express");
+const router = express.Router();
+const Ride = require("../models/Ride");
+
+router.get("/", async (req,res)=>{
+  const rides = await Ride.find();
+  res.json(rides);
+});
+
+router.post("/create", async (req,res)=>{
+  const ride = new Ride(req.body);
+  await ride.save();
+  res.json({success:true, ride});
+});
+
+module.exports = router;

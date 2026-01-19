@@ -1,0 +1,21 @@
+import React from "react";
+import CustomerBooking from "./components/CustomerBooking";
+import DriverDashboard from "./components/DriverDashboard";
+import DriverApplication from "./components/DriverApplication";
+import AdminDashboard from "./components/AdminDashboard";
+import LostFound from "./components/LostFound";
+
+function App() {
+  return (
+    <div>
+      <h1>MapleRide</h1>
+      <CustomerBooking/>
+      <DriverApplication/>
+      <DriverDashboard driverId="driver123"/>
+      <AdminDashboard/>
+      <LostFound/>
+    </div>
+  )
+}
+
+export default App;

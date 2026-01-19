@@ -1,0 +1,24 @@
+const express = require("express");
+const router = express.Router();
+const Driver = require("../models/Driver");
+
+router.get("/drivers", async (req,res)=>{
+  const drivers = await Driver.find();
+  res.json(drivers);
+});
+
+router.post("/approve/:id", async (req,res)=>{
+  const driver = await Driver.findById(req.params.id);
+  driver.status = "approved";
+  await driver.save();
+  res.json({success:true, driver});
+});
+
+router.post("/reject/:id", async (req,res)=>{
+  const driver = await Driver.findById(req.params.id);
+  driver.status = "rejected";
+  await driver.save();
+  res.json({success:true, driver});
+});
+
+module.exports = router;

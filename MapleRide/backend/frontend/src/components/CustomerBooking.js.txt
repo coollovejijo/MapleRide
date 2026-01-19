@@ -1,0 +1,40 @@
+import React, { useState } from "react";
+import { createRide } from "../api";
+
+function CustomerBooking() {
+  const [pickup,setPickup] = useState("");
+  const [dropoff,setDropoff] = useState("");
+  const [rideType,setRideType] = useState("normal");
+  const [customerName,setCustomerName] = useState("");
+  const [customerPhone,setCustomerPhone] = useState("");
+
+  const handleSubmit = async (e)=>{
+    e.preventDefault();
+    const distance = 5; // sample, in real app calculate distance
+    const fare = rideType==="normal"?10:rideType==="comfort"?11:12;
+    const rideData = {pickup,dropoff,rideType,customerName,customerPhone,distanceKm:distance,fare};
+    const res = await createRide(rideData);
+    alert("Ride Booked!");
+  }
+
+  return (
+    <div>
+      <h2>Book a Ride</h2>
+      <form onSubmit={handleSubmit}>
+        <input placeholder="Name" value={customerName} onChange={e=>setCustomerName(e.target.value)} required/>
+        <input placeholder="Phone" value={customerPhone} onChange={e=>setCustomerPhone(e.target.value)} required/>
+        <input placeholder="Pickup Location" value={pickup} onChange={e=>setPickup(e.target.value)} required/>
+        <input placeholder="Dropoff Location" value={dropoff} onChange={e=>setDropoff(e.target.value)} required/>
+        <select value={rideType} onChange={e=>setRideType(e.target.value)}>
+          <option value="normal">Normal</option>
+          <option value="comfort">Comfort</option>
+          <option value="xl">XL (6 seats)</option>
+          <option value="pet">Pet Friendly (+$3)</option>
+        </select>
+        <button type="submit">Book Ride</button>
+      </form>
+    </div>
+  )
+}
+
+export default CustomerBooking;

@@ -1,0 +1,76 @@
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const http = require("http");
+const { Server } = require("socket.io");
+require("dotenv").config();
+
+const rideRoutes = require("./routes/rideRoutes");
+const driverRoutes = require("./routes/driverRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } });
+
+app.use(cors());
+app.use(express.json());
+
+// MongoDB connection
+mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/mapleride", {
+  useNewUrlParser:true,
+  useUnifiedTopology:true
+}).then(()=>console.log("MongoDB connected"));
+
+// Routes
+app.use("/api/rides", rideRoutes);
+app.use("/api/drivers", driverRoutes);
+app.use("/api/admin", adminRoutes);
+
+// Real-time Socket.IO
+let availableDrivers = {};
+
+io.on("connection", socket => {
+  console.log("Connected:", socket.id);
+
+  socket.on("driverAvailable", (driverId) => {
+    availableDrivers[socket.id] = driverId;
+  });
+
+  socket.on("requestRide", async (rideData) => {
+    const Ride = require("./models/Ride");
+    const ride = new Ride({ ...rideData, status:"requested" });
+    await ride.save();
+
+    const driverSocketId = Object.keys(availableDrivers)[0];
+    if(driverSocketId){
+      ride.assignedDriver = availableDrivers[driverSocketId];
+      ride.status = "assigned";
+      await ride.save();
+      io.to(driverSocketId).emit("newRide", ride);
+      socket.emit("rideAssigned", ride);
+    }
+  });
+
+  socket.on("completeRide", async (rideId) => {
+    const Ride = require("./models/Ride");
+    const ride = await Ride.findById(rideId);
+    ride.status = "completed";
+    await ride.save();
+    socket.emit("rideCompleted", ride);
+  });
+
+  socket.on("lostItem", async (rideId) => {
+    const Ride = require("./models/Ride");
+    const ride = await Ride.findById(rideId);
+    ride.lostItemReported = true;
+    await ride.save();
+    socket.emit("lostItemNotified", "Driver notified");
+  });
+
+  socket.on("disconnect", () => {
+    delete availableDrivers[socket.id];
+  });
+});
+
+server.listen(process.env.PORT || 5000, ()=>console.log("MapleRide backend running"));
